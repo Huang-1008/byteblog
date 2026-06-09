@@ -390,7 +390,7 @@ python -c "import uvicorn; uvicorn.run('main:app', port=8002, reload=False)"
 - [ ] `python run_tests.py` 全部 PASS
 - [ ] `sql/init.sql` 可一键执行
 - [ ] `start.bat` 双击能跑通
-- [ ] `.gitignore` 忽略 .env / node_modules / __pycache__
+- [ ] `.gitignore` 忽略 .env / node_modules / __pycache__ / 含密钥的脚本
 - [ ] README 含：启动说明 + GitHub 链接 + 技术栈 + 业务规则 + API 列表
 - [ ] 论文含 8 章节 + 图表占位
 - [ ] Git 历史 ≥ 2 个有意义的 commit

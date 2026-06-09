@@ -19,6 +19,7 @@ metadata:
 - [ ] 模型字段全部用 `mapped_column(String(20))`，不用 `Enum`
 - [ ] security.py 直接 `import bcrypt`，不经过 passlib
 - [ ] 写完 API 路由后对照前端 api/index.ts 路径
+- [ ] **所有含密钥的脚本（setup_db / run_tests / test_api）加入 .gitignore，或改为从 .env 读取**
 
 ## 零、流程铁律（违反必后悔）
 
