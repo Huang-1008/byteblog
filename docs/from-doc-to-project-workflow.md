@@ -358,6 +358,7 @@ bash 命令 → 失败 → Windows 没有 pkill → 改用 taskkill
 Python print → GBK 编码错误 → 改用文件输出
 路径分隔符 → / 和 \ 混用 → 统一用 /
 curl JSON → 引号被转义 → 改用 Python requests
+BAT 中文 → CMD 乱码('璇峰厛瀹夎') → 纯英文重写
 ```
 
 **提前避免**：
@@ -365,6 +366,8 @@ curl JSON → 引号被转义 → 改用 Python requests
 2. 避免 Emoji 在 print 中
 3. 杀进程用 `taskkill /F /PID` 不用 `pkill`
 4. 测试全部用 Python（urllib + subprocess）
+5. **BAT 文件用纯英文**：Windows CMD 按 GBK 解析 UTF-8 文件，中文全部变乱码。不要写中文注释，chcp 65001 也不可靠。
+6. BAT 文件 If/else、中文路径、特殊字符在 CMD 中极易出错，统一写英文。
 
 ### 验证循环的本质规律
 
