@@ -136,6 +136,15 @@ Q1: 选题方向？ Q2: 技术栈偏好？ Q3: 有API Key吗？ Q4: UI风格偏�
 | npm 包（Element Plus, Vue Router, Pinia, Axios, ByteMD, SCSS, docx） | 前端框架 + 论文生成 |
 | pip 包（FastAPI, SQLAlchemy, PyMySQL, bcrypt, jose, httpx, markdown-it-py） | 后端框架 + AI调用 |
 | 内置 Skill（docx, code-review, deep-research） | 论文生成、代码检查 |
+| **Playwright CLI**（`npx playwright install chromium`） | **页面截图 + 自动化端到端验证** |
+
+**工具调用优先级（重要！）：**
+
+```
+截图/自动化测试：Playwright CLI（首选） → Playwright MCP（CLI 失败时）
+建仓库/推送：   GitHub MCP（首选） → 手动 git（MCP 不可用时）
+查数据库：      MySQL MCP（首选） → Python pymysql（MCP 不可用时）
+```
 
 **提示用户授权的 MCP：**
 
@@ -143,13 +152,32 @@ Q1: 选题方向？ Q2: 技术栈偏好？ Q3: 有API Key吗？ Q4: UI风格偏�
 |------|------|------|
 | GitHub MCP | 建仓库+推送 | 手动 git 命令 |
 | MySQL MCP | 查询验证 | Python pymysql 脚本 |
+| Playwright MCP | 浏览器交互（备选） | Playwright CLI |
 
-**标准问法：**
+**标准问法 + 自动安装：**
 
 ```
-这个项目需要用 GitHub MCP（建仓库推送）和 MySQL MCP（查数据库）。
-你有这些 MCP 工具吗？没有的话我用 git 命令和 pymysql 脚本代替。
+我会自动安装的：
+- 所有 npm/pip 依赖
+- Playwright 浏览器（npx playwright install chromium）
+
+需要确认你有没有的 MCP：
+- GitHub MCP（没有我就用手动 git）
+- MySQL MCP（没有我就用 pymysql）
+- Playwright MCP（备选，CLI 已经够用）
 ```
+
+### 🔴 STOP 0.5：代码写完、启动成功后，立刻用 Playwright CLI 截图
+
+```bash
+# 后端必须已启动！然后：
+npx playwright screenshot --browser=chromium http://localhost:5173/login docs/login.png
+npx playwright screenshot --browser=chromium http://localhost:5173/admin/articles docs/articles.png
+npx playwright screenshot --browser=chromium http://localhost:5173/admin/articles/new docs/editor.png
+npx playwright screenshot --browser=chromium http://localhost:5173/admin/review docs/review.png
+```
+
+截图直接用于论文，不用手动截。
 
 ### 🔴 STOP 1：输出完整架构 Prompt
 

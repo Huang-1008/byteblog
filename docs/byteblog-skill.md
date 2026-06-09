@@ -210,7 +210,24 @@ uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
 
 ---
 
-## 四、验证循环标准流程
+## 四、Playwright 截图命令（直接复制）
+
+```bash
+# 首次使用先装浏览器
+npx playwright install chromium
+
+# 项目启动后截图（用于论文）
+npx playwright screenshot --browser=chromium http://localhost:5173/login docs/login.png
+npx playwright screenshot --browser=chromium http://localhost:5173/admin/articles docs/articles.png
+npx playwright screenshot --browser=chromium http://localhost:5173/admin/articles/new docs/editor.png
+npx playwright screenshot --browser=chromium http://localhost:5173/admin/review docs/review.png
+```
+
+CLI 失败时用 MCP：`mcp__playwright__browser_navigate` + `mcp__playwright__browser_take_screenshot`
+
+---
+
+## 五、验证循环标准流程
 
 每次改完代码后执行：
 
