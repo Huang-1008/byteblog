@@ -1,6 +1,8 @@
 # ByteBlog —— AI 增强的个人博客系统
 
 > 软件生产实习结课项目 | 2025-2026 学年第二学期
+>
+> GitHub：https://github.com/Huang-1008/byteblog
 
 基于 **Vue 3 + FastAPI + MySQL + DeepSeek AI** 的前后端分离博客系统。支持完整的文章审核发布流程、AI 智能摘要与标签推荐、权限分级管理。
 
@@ -23,7 +25,18 @@
 
 ## 快速开始
 
-### 1. 数据库
+### 一键启动（Windows BAT）
+
+```bash
+# 在项目根目录双击运行
+start.bat
+```
+
+BAT 脚本会自动检查 Python/Node.js 环境，启动后端（8000）和前端（5173），打开浏览器即可使用。
+
+### 手动启动
+
+**1. 数据库**
 
 确保 MySQL 已启动，执行建库脚本：
 
@@ -33,19 +46,18 @@ mysql -u root -p < sql/init.sql
 
 默认管理员：`admin` / `admin123`
 
-### 2. 后端
+**2. 后端**
 
 ```bash
 cd blog-system
 pip install -r backend/requirements.txt
-
-# 编辑 backend/.env，修改数据库密码和 DeepSeek API Key
+# 编辑 backend/.env，填入数据库密码和 DeepSeek API Key
 python start_backend.py
 ```
 
-后端运行在 http://localhost:8000 ，自动生成 OpenAPI 文档：http://localhost:8000/docs
+后端：http://localhost:8000 | API 文档：http://localhost:8000/docs
 
-### 3. 前端
+**3. 前端**
 
 ```bash
 cd frontend
@@ -53,7 +65,7 @@ npm install
 npm run dev
 ```
 
-前端运行在 http://localhost:5173
+前端：http://localhost:5173
 
 ## 项目结构
 

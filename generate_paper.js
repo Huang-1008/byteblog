@@ -229,22 +229,27 @@ function makeChapter6() {
     heading2('6.1 本地运行'),
     heading3('6.1.1 环境准备'),
     p('（1）安装 Python 3.10+、Node.js 18+、MySQL 8.0+。'),
-    p('（2）克隆项目到本地，进入项目根目录。'),
-    heading3('6.1.2 数据库配置'),
+    p('（2）从 GitHub 克隆项目：git clone https://github.com/Huang-1008/byteblog.git。'),
+    p('（3）进入项目根目录：cd byteblog。'),
+    heading3('6.1.2 一键启动（推荐）'),
+    p('项目提供了 Windows BAT 一键启动脚本 start.bat，双击即可自动启动前后端服务。'),
+    p('BAT 脚本会自动完成以下步骤：'),
+    p('  ① 检测 Python 和 Node.js 环境是否就绪。'),
+    p('  ② 检测 MySQL 命令行工具是否可用。'),
+    p('  ③ 启动后端服务（后端在 8000 端口运行）。'),
+    p('  ④ 检查前端依赖是否安装，未安装则自动执行 npm install。'),
+    p('  ⑤ 启动前端开发服务器（前端在 5173 端口运行）。'),
+    p('启动完成后，浏览器访问 http://localhost:5173 即可使用。'),
+    heading3('6.1.3 数据库配置'),
     p('确保 MySQL 服务已启动，使用 root 账号执行 sql/init.sql 创建 blog_db 数据库和所有表结构，并插入默认管理员账号（admin/admin123）和 10 个预设标签。'),
-    heading3('6.1.3 后端启动'),
-    p('（1）进入 backend 目录：cd blog-system/backend。'),
-    p('（2）安装 Python 依赖：pip install -r requirements.txt。'),
-    p('（3）编辑 .env 文件，配置数据库连接密码和 DeepSeek API Key。'),
-    p('（4）启动后端：python ../start_backend.py。'),
-    p('（5）后端运行在 http://localhost:8000，可访问 http://localhost:8000/docs 查看 API 文档。'),
-    heading3('6.1.4 前端启动'),
-    p('（1）进入 frontend 目录：cd blog-system/frontend。'),
-    p('（2）安装依赖：npm install。'),
-    p('（3）启动开发服务器：npm run dev。'),
-    p('（4）前端运行在 http://localhost:5173，Vite 自动代理 /api 请求到后端。'),
+    heading3('6.1.4 手动启动'),
+    p('（1）后端启动：安装 Python 依赖（pip install -r backend/requirements.txt），编辑 backend/.env 配置数据库密码和 DeepSeek API Key，运行 python start_backend.py。'),
+    p('（2）前端启动：进入 frontend 目录，npm install 安装依赖，npm run dev 启动开发服务器。'),
+    p('（3）Vite 自动将 /api 请求代理到后端 8000 端口。'),
     heading2('6.2 Git 部署'),
-    p('项目使用 Git 进行版本控制。将代码推送到远程仓库后，在其他计算机上拉取代码并按上述步骤配置环境即可运行。'),
+    p('项目已推送到 GitHub 仓库：https://github.com/Huang-1008/byteblog。'),
+    p('在其他计算机上部署的步骤：git clone 代码 → 安装依赖 → 配置数据库 → 运行 start.bat（Windows）或手动启动。'),
+    p('Git 提交记录体现了完整的开发过程，包括项目初始化、核心功能实现、Bug 修复和文档完善等阶段。'),
     new Paragraph({ children: [new PageBreak()] }),
   ];
 }
@@ -344,7 +349,7 @@ const doc = new Document({
 });
 
 // 生成文件
-const outPath = 'c:/Users/huangchunyuan/Desktop/RUANJIAN/blog-system/docs/软件生产实习结课论文_ByteBlog.docx';
+const outPath = 'c:/Users/huangchunyuan/Desktop/RUANJIAN/blog-system/docs/软件生产实习结课论文_ByteBlog_v2.docx';
 Packer.toBuffer(doc).then(buf => {
   fs.writeFileSync(outPath, buf);
   console.log('Paper generated:', outPath);
