@@ -144,6 +144,87 @@ backend/app/{api,ai,core,models,schemas,services}
 
 ---
 
+## 阶段3.5：反复验证循环（核心！）
+
+> 从来没有一次通过的。验证 → 失败 → 定位 → 修复 → 再验证，循环直到通过。
+
+### 循环1：依赖与启动
+
+```
+启动后端 → ModuleNotFoundError → pip install → 再启动 → 成功
+```
+
+**提前避免**：先 `pip install -r requirements.txt`，确认无报错再写启动命令。
+
+### 循环2：数据库连接
+
+```
+启动后端 → Access denied → 改.env密码 → 再启动 → SQLAlchemy mapper error → 改模型 → 再启动 → 成功
+```
+
+**提前避免**：
+1. `.env` 密码不要用默认值占位，直接问用户真实密码
+2. 模型写完先 `python -c "from app.models import *"` 验证导入无报错
+
+### 循环3：ORM类型兼容
+
+```
+注册API → 500 Error → 查日志 → LookupError Enum → 改模型String → 清除缓存 → 重启 → 再测 → 还报错 → 发现缓存没清干净 → 再清 → 再重启 → 通过
+```
+
+**提前避免**：
+1. 模型字段全部用 `String` 不用 `Enum`（坑1）
+2. 改模型后 `find . -name "__pycache__" -exec rm -rf {} +`
+3. **不要用 uvicorn reload 模式**，reloader 会缓存旧代码
+
+### 循环4：业务逻辑验证
+
+```
+登录API → 密码错误 → 查DB → bcrypt hash不匹配 → 重新生成hash → 更新DB → 再登录 → 通过
+创建文章 → 通过 → 提交审核 → 通过 → 审核通过 → 通过 → 归档 → 通过
+文章列表 → 空 → 检查API路径 → 发现 /my/articles ≠ /articles/my/articles → 修复 → 通过
+```
+
+**提前避免**：
+1. 种子数据用 `bcrypt.hashpw()` 现场生成 hash，不要用旧的占位hash
+2. 写完后端路由立刻对照前端 API 调用路径检查
+
+### 循环5：用户反馈迭代
+
+```
+用户："看不到文章内容" → 检查 → 编辑权限只允许draft → 放宽到draft+published → 通过
+用户："管理列表没查看按钮" → 添加 → window.open在SPA无效 → 改router.push → 通过
+用户："草稿权限泄漏" → 管理员能看到别人的草稿 → 加过滤条件 → 通过
+用户："都是英文" → Element Plus没配中文 → import zhCn → 通过 → ByteMD没配 → import zhHans.json → 通过
+```
+
+**提前避免**：
+1. 业务规则写死前先让用户确认
+2. Element Plus + ByteMD 中文配置写在项目模板里
+3. SPA 中永远用 `router.push()`，不用 `window.open()`
+
+### 循环6：论文生成
+
+```
+生成论文 → 成功 → 用户要求补充 → 文件被占用 → 换文件名 → 再生成 → 覆盖原文件 → 通过
+```
+
+**提前避免**：论文生成前提醒用户关闭 Word。
+
+### 验证循环的本质规律
+
+```
+第1次: 启动失败（环境/依赖/密码）
+第2次: 500错误（代码逻辑/类型/缓存）
+第3次: 200但数据不对（路径/权限/业务规则）
+第4次: 用户反馈调整（UI/体验/边界）
+第5次: 通过
+```
+
+**核心原则：每次改完代码 → 清缓存 → 重启 → 用脚本自动化验证，不要手动一个个试。**
+
+---
+
 ## 阶段4：Bug修复模式
 
 ### 4.1 定位 Bug 的标准流程
