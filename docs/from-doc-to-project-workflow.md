@@ -1,502 +1,303 @@
 ---
 name: from-doc-to-project-workflow
-description: 从读取需求文档到完整项目交付的全流程方法论 — 决策树、提前避坑、验证驱动、论文生成、安全拦截应对、Windows适配
+description: 触发驱动型项目全流程 — 7个STOP检查点、每阶段执行模板、决策树前置、多文档优先级、安全拦截应对、Windows适配、工具清单
 metadata:
   type: reference
 ---
 
-# 从文档到项目：全流程生成方法论
+# 从文档到项目：触发驱动全流程
 
-> 适用场景：拿到一个课程/比赛需求文档 → 交付完整项目 + 论文
+> 🔴 触发条件：用户给了一个需求文档或任务书 → 自动加载此 Skill。
+>
+> 核心原则：**每个阶段结束必须 STOP 让用户确认，不跨阶段。先要密钥，再写代码。**
 
 ---
 
-## 阶段0：需求解码（15分钟）
-
-### 0.1 读文档三步法
-
-**第一步：提取强制项**
-从文档中提取所有"必须""强制""要求"关键词，列成清单。这些不能妥协。
-
-**第二步：提取加分项**
-找出所有"加分""推荐""鼓励"关键词，作为技术选型的额外维度。
-
-**第三步：画出决策树**
-把所有需要用户选择的点列出来，每个点给推荐选项 + 理由。
-
-### 0.2 必须向用户确认的4个问题
-
-Q1: 选题方向？（传统/AI增强/自定义）
-Q2: 技术栈偏好？（前端框架 + 后端语言 + 数据库）
-Q3: 现有资源？（已有API Key？有基础代码？）
-Q4: UI风格偏好？（管理后台风/内容创作风？要不要前台？进阶问题：页面组件细节逐个确认）
-
-> ⚠️ 用户说"无所谓你帮我选"时，选文档推荐的默认项，并告知理由。
-
-### 0.3 提前收集用户密钥和配置信息 🔑
-
-**必须在写代码前向用户索要，否则后续反复修改 .env 会触发自动模式安全拦截。**
-
-#### 必问清单
-
-| 配置项 | 用途 | 影响范围 |
-|------|------|------|
-| AI API Key | DeepSeek/OpenAI 调用 | AI 功能 |
-| MySQL 密码 | 数据库连接 | 全部功能 |
-| GitHub 用户名 | 创建仓库 + 推送 | 版本控制 |
-
-#### 论文相关
-
-| 配置项 | 用途 |
-|------|------|
-| 学校名称 | 封面 |
-| 专业班级 | 封面 |
-| 姓名 | 封面 |
-| 学号 | 封面 |
-
-#### 标准问法模板
+## 快速决策树（先跑这个）
 
 ```
-在开始写代码前，我需要以下信息：
-1. 你的 AI API Key（有就用，没有就跳过 AI 功能）
+拿到文档
+  │
+  ├─ 🔴 STOP 0: 问用户要密钥！(API Key + DB密码 + GitHub用户名)
+  │
+  ├─ 选题方向？ → AI增强+传统基础 = 最优解
+  ├─ 前端框架？ → 文档推荐哪个选哪个
+  ├─ 后端语言？ → FastAPI(快速) / SpringBoot(加分)
+  ├─ 数据库？   → MySQL（文档推荐）
+  ├─ 做几端？   → 前台+后台（完整） / 仅后台（省时）
+  ├─ 有AI加分？ → 用户有API Key就做
+  │
+  └─ 🔴 STOP 1: 输出完整架构 Prompt 让用户逐项确认
+```
+
+---
+
+## 阶段0：需求解码 + 收集密钥
+
+### 🔴 STOP 0：收到文档后、写代码前，先问密钥
+
+**直接复制这段发给用户：**
+
+```
+我看了文档，在开始之前需要你提供：
+
+1. 你的 AI API Key（有就做AI功能，没有就跳过）
 2. 你的 MySQL root 密码
 3. 你的 GitHub 用户名（建仓库用）
 4. 你的学校、班级、姓名、学号（论文封面用）
 
-> 密码和 Key 只在本地 .env 使用，不会提交到 GitHub。
+密码和 Key 只在本地 .env 使用，不会提交到 GitHub。
 ```
 
-#### 收到后立即做的事
-
+收到后立即：
 ```
-1. 写入 backend/.env（数据库密码 + API Key）
-2. 写入 .gitignore（确保 .env 不被提交）
-3. 写一个 .env.example 模板（不含真实密码，供 Git 提交）
-4. 写入生成论文脚本的封面信息（学校/班级/姓名/学号）
+backend/.env    ← 填密码 + API Key
+.gitignore     ← 加入 .env、node_modules、__pycache__
+.env.example   ← 不含真实密码的模板
+generate_paper.js ← 填学校/班级/姓名/学号
 ```
 
-> ⚠️ 不提前要密码的后果：自动模式安全检测会反复拦截所有 Bash 命令，导致"读日志→修Bug→重启"循环完全瘫痪。
+### 读文档三步
 
-### 0.4 处理用户补充的额外文档
+1. 提取强制项（"必须""强制""要求"）→ 不可妥协
+2. 提取加分项（"推荐""鼓励""加分"）→ 技术选型加权
+3. 画出决策树 → 每个分叉给推荐选项 + 理由
 
-如果用户中途补充了规范文档（如学校论文撰写规范），优先级为：
+### 确认4问
 
+Q1: 选题方向？ Q2: 技术栈偏好？ Q3: 有API Key吗？ Q4: UI风格偏好？
+
+### 多文档处理
+
+用户补充额外规范文档时，优先级：
 ```
 结课论文要求（具体） > 学校通用规范（通用） > 默认格式
 ```
 
-`.doc` 旧版文件 pandoc 无法读取，用 `olefile` + `textract` 提取内容。
-
-### 0.5 常见选题推荐
-
-| 类型 | 推荐选题 | 原因 |
-|------|------|------|
-| 稳妥型 | 个人博客 | 资料多，状态流转天然适合 |
-| 加分型 | AI增强博客/待办 | AI加分项 + 传统项目基础 |
-| 创新型 | AI知识库 | 差异化明显，但风险高 |
-
 ---
 
-## 阶段1：架构设计（10分钟）
+## 阶段1：架构设计 + 工具盘点
 
-### 1.0 确定所需工具：Skills / Agent / MCP
+### 工具盘点
 
-**在架构设计前，先盘点项目需要哪些工具，提前告知用户安装。**
+**自行安装的（直接装）：**
 
-#### 分类规则
-
-| 安装方式 | 适用情况 | 示例 |
-|------|------|------|
-| **自行安装** | 纯代码依赖，无外部服务 | npm pip 包、VSCode 插件 |
-| **提示用户安装** | 需要用户账号/密钥/授权 | MCP 服务（GitHub/MySQL/Playwright） |
-
-#### 本项目标准工具清单
-
-| 工具 | 类型 | 用途 | 安装方式 |
-|------|------|------|------|
-| `docx` Skill | Skill | 生成 .docx 论文 | 自行调用（内置 skill） |
-| `deep-research` Skill | Skill | 技术方案调研（可选） | 自行调用（内置 skill） |
-| `code-review` Skill | Skill | 阶段性代码审查（可选） | 自行调用（内置 skill） |
-| GitHub MCP | MCP | 创建仓库、推送代码、PR | **提示用户**：需要 GitHub 授权 |
-| MySQL MCP | MCP | 数据库查询验证（只读） | **提示用户**：需配置数据库连接 |
-| Playwright MCP | MCP | 浏览器端到端测试（可选） | **提示用户**：需安装浏览器驱动 |
-| `docx` npm 包 | npm | JavaScript 生成论文文件 | 自行安装：`npm install docx` |
-| General-Purpose Agent | Agent | 前端页面批量生成 | 自行调用 |
-
-#### 标准问法
-
-```
-这个项目需要以下工具：
-
-自行安装的（我现在就装）：
-- Element Plus / ByteMD / SCSS（npm 依赖）
-- FastAPI / SQLAlchemy / bcrypt（pip 依赖）
-- docx npm 包（论文生成）
-
-需要你授权的（告诉我是否可用）：
-- GitHub MCP（建仓库+推送，需要你的 GitHub 账号授权）
-- MySQL MCP（查数据库，需要配置连接）
-- Playwright MCP（浏览器测试，可选）
-
-上面这些 MCP 工具你都有吗？没有的话我不用它们，换其他方式。
-```
-
-#### MCP 不可用时的降级方案
-
-| MCP 不可用 | 降级方案 |
+| 工具 | 用途 |
 |------|------|
-| GitHub MCP | 手动 `git remote add` + `git push`，或让用户在 GitHub 网页建仓库 |
-| MySQL MCP | 用 Python pymysql 脚本直接连接数据库 |
-| Playwright MCP | 用 curl + 截图 + 用户手动验证 |
+| npm 包（Element Plus, Vue Router, Pinia, Axios, ByteMD, SCSS, docx） | 前端框架 + 论文生成 |
+| pip 包（FastAPI, SQLAlchemy, PyMySQL, bcrypt, jose, httpx, markdown-it-py） | 后端框架 + AI调用 |
+| 内置 Skill（docx, code-review, deep-research） | 论文生成、代码检查 |
 
-> ⚠️ 不要假设用户有 MCP 工具。先问，不可用就降级。
+**提示用户授权的 MCP：**
 
-### 1.1 生成最终确认 Prompt
+| MCP | 用途 | 不可用时降级 |
+|------|------|------|
+| GitHub MCP | 建仓库+推送 | 手动 git 命令 |
+| MySQL MCP | 查询验证 | Python pymysql 脚本 |
 
-在写代码前，输出一份完整确认清单给用户：
-
-```
-项目名称、技术栈（含版本号）、页面路由表、组件树、数据库ER草图、
-API列表、分阶段计划、所需 Skills/Agents/MCP 及安装方式、
-UI设计规范（色彩/字体/动效）、加分项覆盖策略
-```
-
-清单中每项标 `🔲` 让用户逐项确认。用户确认后再动手。
-
-### 1.2 数据库设计原则
-
-- 所有状态字段用 VARCHAR，不用 ENUM
-- 所有外键关系明确 foreign_keys
-- 种子数据用 `bcrypt.hashpw()` 现场生成 hash，不要用占位值
-- 管理员密码 hash 必须验证通过再写入 init.sql
-- 字符集 utf8mb4（支持中文和 emoji）
-
-### 1.3 API 设计原则
-
-- 先定路由前缀再写路径
-- 写完所有后端路由后，立刻对照前端 api/index.ts 的调用路径检查是否匹配
-- 分模块：auth / articles / comments / ai / tags / admin
-
----
-
-## 阶段2：骨架搭建（20分钟）
-
-### 2.1 后端优先（数据层先通）
+**标准问法：**
 
 ```
-1. 写 .env + config.py（load_dotenv 绝对路径 + override=True）
-2. 写 database.py（engine + SessionLocal + Base）
-3. 写 models（全用 String 类型，不用 Enum）
-4. 写 security.py（bcrypt 直接调，不经过 passlib）
-5. 写 schemas（Pydantic 请求/响应）
-6. 写 auth_deps.py（get_current_user + get_current_user_or_none + get_admin_user）
-7. 写 API 路由（一个一个模块写）
-8. 写 main.py（CORS + include_router）
+这个项目需要用 GitHub MCP（建仓库推送）和 MySQL MCP（查数据库）。
+你有这些 MCP 工具吗？没有的话我用 git 命令和 pymysql 脚本代替。
 ```
 
-### 2.2 前端继之
+### 🔴 STOP 1：输出完整架构 Prompt
+
+**直接复制这个模板，填好后发给用户确认：**
 
 ```
-1. 脚手架：npm create vite@latest -- --template vue-ts
-2. 装依赖：Element Plus + Vue Router + Pinia + Axios + ByteMD + SCSS
-3. 配 vite.config.ts（@ alias + proxy /api → localhost:8000）
-4. 写 types/index.ts（所有 TS 接口）
-5. 写 api/index.ts（Axios 封装 + 拦截器 + 所有 API 函数）
-6. 写 stores/auth.ts（Pinia 认证状态）
-7. 写 router/index.ts（路由表 + beforeEach 守卫）
-8. 写 main.ts（注册 Element Plus 中文 + Pinia + Router）
-9. 写全局 SCSS（颜色/卡片/动画/Element Plus 覆写）
-10. 写布局组件（FrontLayout + AdminLayout）
-11. 写页面组件（按复杂度递增顺序）
-```
+===== 项目确认清单 =====
 
-### 2.3 Agent 并行创建应对
+项目名称：[XXX]
+技术栈：Vue3+TS / FastAPI / MySQL / [AI API]
+页面路由：[列出所有路由]
+组件树：[列出所有组件]
+数据库：6张表 [列出表名]
+API：18个端点 [列出模块]
+分阶段计划：10个阶段 [列出]
+加分覆盖：[列出所有加分项]
+UI风格：[色彩/字体/动效]
 
-大量页面文件时，可用 Agent 并行创建。但：
+需要你确认的：
+🔲 选题方向：[XXX]
+🔲 技术栈：[XXX]
+🔲 AI功能：[做/不做]
+🔲 UI风格：[XXX]
+🔲 前台页面：[做/不做]
+🔲 GitHub仓库：[用户名]
+🔲 论文封面：[学校/班级/姓名/学号]
 
-**如果 Agent 报错 `thinking options type cannot be disabled`** 或 `API Error: 400`，说明模型配置不支持子 Agent。立刻放弃 Agent 策略，直接手动 Write。
-
-**手动创建顺序**：
-1. 先写核心配置（main.ts / router / stores / types / api）
-2. 再写布局组件（Layout）
-3. 再写简单页面（Login / Register / Settings）
-4. 最后写复杂页面（Editor / Dashboard / Review）
-
-### 2.4 文件创建顺序
-
-先创建这些目录，避免后续报错：
-```
-frontend/src/{api,assets/styles,components/{admin,front,shared},layouts,pages/{admin,front},router,stores,types,utils}
-backend/app/{api,ai,core,models,schemas,services}
+请逐项确认，全通过后我开始写代码。
 ```
 
 ---
 
-## 阶段3：验证阶段（最关键！）
+## 阶段2：骨架搭建
 
-### 3.1 每写完一个模块就验证
+### 后端优先（数据层先通）
 
-不要全部写完再测试！按这个顺序逐步验证：
+按顺序执行，每步做完验证：
 
 ```
-1. Python 直接测 DB 连接
-2. Python 直接测密码哈希
-3. Python 直接测 JWT 签发/验证
-4. curl 测注册/登录 API
-5. curl 测文章 CRUD + 状态流转
-6. 前端 npm run dev 看页面是否渲染
-7. 浏览器操作完整业务流程
+1. backend/.env → 验证：python -c "from app.core.config import settings; print(settings.DATABASE_URL)"
+2. database.py → 验证：python -c "from app.core.database import engine; engine.connect()"
+3. models/    → 验证：python -c "from app.models import *; print('OK')"
+4. security.py → 验证：python -c "from app.core.security import hash_password; print(hash_password('test'))"
+5. schemas/   → 无独立验证（依赖 models）
+6. auth_deps.py → 验证：import 无报错
+7. api/       → 逐个 curl 测试
+8. main.py    → 验证：curl http://localhost:8000/
 ```
 
-### 3.2 自动化测试脚本
+**关键原则：**
+- 所有状态字段用 `String(20)`，不用 `Enum`
+- bcrypt 直接 import，不经过 passlib
+- load_dotenv 用绝对路径 + override=True
 
-写一个 `run_tests.py`，每次改完代码跑一遍，秒级反馈。脚本结构：
+### 前端继之
+
+```
+1. npm create vite@latest → npm install 所有依赖
+2. vite.config.ts（proxy /api → localhost:8000）
+3. main.ts（Element Plus 中文 + Pinia + Router）
+4. types/ → api/ → stores/ → router/
+5. layouts/ → pages/（简单→复杂）
+```
+
+### Agent 并行创建
+
+如果 Agent 报错 `thinking options type cannot be disabled`，放弃 Agent，直接手动 Write。
+
+---
+
+## 阶段3 + 3.5：验证循环
+
+### 🔴 STOP 2：写完代码后先跑这个
+
+```bash
+# 1. 清缓存
+find . -name "__pycache__" -exec rm -rf {} +
+find . -name "*.pyc" -delete
+
+# 2. 启动后端（新端口，不用 reload）
+python -c "import uvicorn; uvicorn.run('main:app', port=8002, reload=False)"
+```
+
+### 自动化测试脚本模板
 
 ```python
-# 1. DB 连接测试
+# run_tests.py 结构
+# 1. 数据库连接测试
 # 2. 密码/JWT 逻辑测试
-# 3. 启动临时服务（新端口如8002，避免冲突）
-# 4. 逐一调用所有 API 端点
+# 3. 启动临时服务
+# 4. 逐一调 API（注册→登录→CRUD→状态流转→AI→评论）
 # 5. 输出 [PASS]/[FAIL] 汇总
 ```
 
-### 3.3 常见验证失败及修复
+### 迭代预期（每个项目都会经历）
 
-| 错误 | 第一时间检查 |
-|------|------|
-| `ModuleNotFoundError` | pip install 了没？用哪个 Python？ |
-| `ImportError` | 清除 `__pycache__` |
-| `Access denied` | .env 密码对不对？load_dotenv 路径对不对？ |
-| 500 Internal Server Error | 查看后端日志 |
-| 前端空白页 | 打开浏览器 Console 看报错 |
-| API 返回 404 | 路径拼写：baseURL + router_prefix + route_path |
-| curl 返回空 | 检查 Windows 下 JSON 引号转义问题 |
+| 轮次 | 错误类型 | 示例 |
+|:--:|------|------|
+| 1 | 环境/依赖 | ModuleNotFoundError, Access denied |
+| 2 | 类型/缓存 | LookupError Enum, pyc 残留 |
+| 3 | 路径/权限 | API 404, 403, 200 但空数据 |
+| 4 | 用户反馈 | UI/交互/业务规则调整 |
+| 5 | 通过 | — |
 
----
+### 安全拦截应对
 
-## 阶段3.5：反复验证循环（核心！）
+如果自动模式反复拦截 Bash 命令：
+1. 写 Python 测试脚本让用户手动执行
+2. 输出写到文件避免 GBK 错误
+3. 避免 Emoji
+4. 终极方案：让用户添加权限规则
 
-> 从来没有一次通过的。验证 → 失败 → 定位 → 修复 → 再验证，循环直到通过。
+### Windows 适配
 
-### 循环1：依赖与启动
-
-```
-启动后端 → ModuleNotFoundError → pip install → 再启动 → 成功
-```
-
-**提前避免**：先 `pip install -r requirements.txt`，确认无报错再写启动命令。
-
-### 循环2：数据库连接
-
-```
-启动后端 → Access denied → 改.env密码 → 再启动 → SQLAlchemy mapper error → 改模型 → 再启动 → 成功
-```
-
-**提前避免**：
-1. .env 密码直接问用户真实密码，不用默认值占位
-2. 模型写完先 `python -c "from app.models import *"` 验证导入无报错
-
-### 循环3：ORM类型兼容
-
-```
-注册API → 500 Error → 查日志 → LookupError Enum → 改模型String → 清除缓存→重启→再测
-→ 还报错 → 发现缓存没清干净/pyc残留 → 彻底清 → 再重启 → 通过
-```
-
-**提前避免**：
-1. 模型字段全部用 String 不用 Enum
-2. 改模型后强制清缓存：`find . -name "__pycache__" -exec rm -rf {} +`  + `find . -name "*.pyc" -delete`
-3. **不要用 uvicorn reload 模式**，reloader 会缓存旧代码
-
-### 循环4：业务逻辑验证
-
-```
-登录API → 密码错误 → 查DB → bcrypt hash不匹配 → 现场生成hash → 更新DB → 再登录 → 通过
-创建文章→通过→提交审核→通过→审核通过→通过→归档→通过
-文章列表→空 → 检查API路径 → /my/articles ≠ /articles/my/articles → 修复 → 通过
-```
-
-**提前避免**：
-1. 种子数据用 `bcrypt.hashpw()` 现场生成 hash，验证通过后再写入 init.sql
-2. 写完后端路由立刻对照前端 api/index.ts 调用路径检查
-
-### 循环5：用户反馈迭代
-
-```
-用户："看不到文章内容" → 检查 → 编辑权限只允许draft → 放宽到draft+published → 通过
-用户："管理列表没查看按钮" → 添加 → window.open在SPA无效 → 改router.push → 通过
-用户："草稿权限泄漏" → 管理员能看到别人的草稿 → 加过滤条件 → 通过
-用户："都是英文" → Element Plus没配中文 → import zhCn → 通过 → ByteMD没配 → import zhHans.json → 通过
-```
-
-**提前避免**：
-1. 业务规则写死前先让用户确认
-2. Element Plus + ByteMD 中文配置写在项目模板里
-3. SPA 中永远用 `router.push()`，不用 `window.open()`
-
-### 循环6：安全拦截瘫痪（Windows 自动模式特有）
-
-```
-读日志 → 拦截（检测到.env中的API Key）→ 写Python脚本 → 拦截（import了config.py）
-→ 用户手动执行 → GBK编码错误 → 改用文件输出 → 拦截 → ...
-```
-
-**这是整个验证阶段最大的障碍。** 自动模式安全检测会将 .env 中的 API Key 视为泄露风险，拦截几乎所有 Bash 命令。
-
-**应对策略**：
-1. 写 Python 测试脚本到文件 `run_tests.py`，让用户手动执行
-2. 测试脚本输出写到文件而非终端（避免 GBK 编码错误）
-3. 避免 Emoji（终端编码不兼容）
-4. 用 `subprocess` 启动临时端口（避开被占用的 8000）
-5. 不依赖 `curl`（Windows 可能没有），用 `urllib.request`
-6. 终极方案：让用户添加 Bash 权限规则到 settings.json
-
-### 循环7：平台兼容（Windows 特有）
-
-```
-bash 命令 → 失败 → Windows 没有 pkill → 改用 taskkill
-Python print → GBK 编码错误 → 改用文件输出
-路径分隔符 → / 和 \ 混用 → 统一用 /
-curl JSON → 引号被转义 → 改用 Python requests
-BAT 中文 → CMD 乱码('璇峰厛瀹夎') → 纯英文重写
-```
-
-**提前避免**：
-1. 用 Python 脚本代替 Bash 命令
-2. 避免 Emoji 在 print 中
-3. 杀进程用 `taskkill /F /PID` 不用 `pkill`
-4. 测试全部用 Python（urllib + subprocess）
-5. **BAT 文件用纯英文**：Windows CMD 按 GBK 解析 UTF-8 文件，中文全部变乱码。不要写中文注释，chcp 65001 也不可靠。
-6. BAT 文件 If/else、中文路径、特殊字符在 CMD 中极易出错，统一写英文。
-
-### 验证循环的本质规律
-
-```
-第1次: 启动失败（环境/依赖/密码）
-第2次: 500错误（代码逻辑/类型/缓存）
-第3次: 200但数据不对（路径/权限/业务规则）
-第4次: 用户反馈调整（UI/体验/边界）
-第5次: 通过
-```
-
-**核心原则：每次改完代码 → 清缓存 → 重启 → 用脚本自动化验证，不要手动一个个试。**
+- 用 `taskkill /F /PID` 不用 `pkill`
+- 用 Python urllib 代替 curl
+- 路径统一用 `/`
+- print 不加 Emoji
 
 ---
 
 ## 阶段4：Bug修复模式
 
-### 4.1 定位 Bug 的标准流程
+### 🔴 STOP 3：用户报 Bug 时
 
 ```
-1. 看前端 Network 面板：请求发出去了吗？状态码？
-2. 看后端日志：有没有 Traceback？
-3. 缩小范围：直接用 Python import 测试相关模块
-4. 改代码 → 清除缓存 → 重启 → 验证
+1. 不要猜 → 查代码定位根因
+2. 修复 → 告知改了哪个文件哪一行 + 为什么
+3. 清缓存 → 重启 → 让用户验证
 ```
-
-### 4.2 最重要的习惯
-
-**每次改模型/配置后必做**：
-```bash
-find . -name "__pycache__" -exec rm -rf {} +
-find . -name "*.pyc" -delete
-# Windows: taskkill /F /PID <pid>
-# 再重启
-```
-
-### 4.3 用户反馈驱动迭代
-
-用户每提一个 bug，不要猜，直接查代码定位根因。修完后告知：
-- 根因是什么
-- 改了哪个文件的哪一行
-- 为什么这样改
 
 ---
 
 ## 阶段5：论文生成
 
-### 5.1 论文生成时机
+### 🔴 STOP 4：确认功能全通过后才生成
 
-所有功能验证通过、用户确认无 bug 后再生成论文。
+**生成前提醒用户关闭 Word。**
 
-### 5.2 docx 生成要点
+用 npm docx 包生成，核心要素：
+- 字体：SimSun 小四(12pt) / SimHei 三号(16pt)
+- 表格：三线表（上下粗线+表头下细线）
+- 图表：占位符文字，用户手动插入截图
+- 格式优先级：结课论文要求 > 学校通用规范 > 默认
 
-- 使用 npm `docx` 包（JavaScript 生成 .docx）
-- 写 `generate_paper.js` 脚本，方便修改后重新生成
-- 字体：正文 SimSun 小四(12pt)，标题 SimHei 三号(16pt)/四号(14pt)
-- 表格用三线表格式（上下粗线 + 表头下细线）
-- 封面单独一页，目录自动生成
-- 图表用占位符文字，让用户手动插入截图
-- 论文生成前提醒用户关闭 Word
-
-### 5.3 论文章节标准结构
+### 论文章节模板
 
 ```
-1. 需求分析 — 背景 + 用户角色 + 功能列表 + 用例图
-2. 概要设计 — 架构图 + 技术选型 + 路由设计
-3. 数据库设计 — ER图 + 表结构（三线表格式）
-4. 系统实现 — 环境 + 关键代码说明 + 界面截图
-5. 系统测试 — 黑盒测试用例表 + 结论
-6. 项目部署 — 数据库配置 + BAT一键启动 + Git部署
-7. AI工具使用 — 工具名 + 场景 + 代码占比 + 思考评价
-8. 总结反思 — 完成情况 + 问题解决 + 收获 + 改进
+1. 需求分析    — 背景 + 角色 + 功能列表 + 用例图占位
+2. 概要设计    — 架构图占位 + 技术选型 + 路由设计
+3. 数据库设计  — ER图占位 + 表结构三线表
+4. 系统实现    — 环境 + 关键代码 + 界面截图占位
+5. 系统测试    — 黑盒测试用例三线表 + 结论
+6. 项目部署    — DB配置 + BAT一键启动 + Git部署
+7. AI工具使用  — 工具名 + 场景 + 代码占比 + 评价
+8. 总结反思    — 完成情况 + 问题 + 收获 + 改进
 ```
-
-### 5.4 格式优先级
-
-```
-结课论文要求.docx（具体格式要求） > 学校撰写规范.doc（通用格式） > 默认格式
-```
-
-结课论文中的格式要求严格遵循，缺失部分用学校规范补充。
 
 ---
 
 ## 阶段6：交付清单
 
-- [ ] 前端 `npm run build` 零错误
-- [ ] 后端 API 全部验证通过
-- [ ] 数据库建库脚本可一键执行
-- [ ] 一键启动脚本（start.bat 或对应平台脚本）
-- [ ] .gitignore 忽略 node_modules/__pycache__/.env
-- [ ] README 含启动说明 + GitHub 链接 + API 文档 + 技术栈 + 业务规则
-- [ ] 论文 .docx 含 8 章节 + 图表占位
-- [ ] Git 提交记录体现开发过程
+### 🔴 STOP 5：交付前逐项检查
+
+- [ ] `npm run build` 零错误
+- [ ] `python run_tests.py` 全部 PASS
+- [ ] `sql/init.sql` 可一键执行
+- [ ] `start.bat` 双击能跑通
+- [ ] `.gitignore` 忽略 .env / node_modules / __pycache__
+- [ ] README 含：启动说明 + GitHub 链接 + 技术栈 + 业务规则 + API 列表
+- [ ] 论文含 8 章节 + 图表占位
+- [ ] Git 历史 ≥ 2 个有意义的 commit
 - [ ] 代码已推 GitHub
-- [ ] 项目经验已沉淀为 Skill（技术避坑 + 流程方法）
 
 ---
 
-## 阶段7：项目经验沉淀
+## 阶段7：经验沉淀
 
-交付完成后，将本项目的踩坑经验生成为可复用 Skill：
+### 🔴 STOP 6：交付后生成两个 Skill
 
-1. **技术避坑 Skill**：具体的错误现象 + 根因 + 正确写法
-2. **流程方法 Skill**：从读文档到交付的完整方法论
+```
+1. 技术避坑 Skill（错误→修复速查表）
+2. 流程方法 Skill（本文档）
+```
 
-保存到两个位置：
-- `docs/` 目录（GitHub 可见）
-- `~/.claude/projects/.../memory/`（Claude 自动读取）
+存入两个位置：
+- `docs/` → GitHub 可见
+- `~/.claude/projects/.../memory/` → Claude 自动读取
 
 ---
 
-## 关键决策树
+## 与 [[vue3-fastapi-fullstack-pitfalls]] 的协作
 
-```
-读取需求文档
-    │
-    ├── 先收集密钥！（API Key + DB密码 + GitHub用户名）
-    ├── 选题方向？ → AI增强 + 稳妥基础 = 最优解
-    ├── 前端框架？ → Vue3（课程推荐） / React
-    ├── 后端语言？ → FastAPI（开发快） / SpringBoot（加分多）
-    ├── 数据库？   → MySQL（推荐）
-    ├── 做几端？   → 前台+后台（完整） / 仅后台（省时间）
-    ├── UI风格？   → 线条风（现代） / 传统（省事）
-    └── TypeScript？→ 用（加分项明确提到）
-```
-
-## 与 [[vue3-fastapi-fullstack-pitfalls]] 的关系
-
-本 Skill 是**流程方法**，那个 Skill 是**技术细节**。两个配合：
-- 流程告诉你"什么时候做什么"
-- 技术细节告诉你"具体怎么写不会出错"
+| 场景 | 查哪个 Skill |
+|------|------|
+| 不知道下一步做什么 | 本文档（流程） |
+| 遇到具体报错不知道怎么修 | 避坑 Skill（技术字典） |
+| 需要复制代码模板 | 避坑 Skill 第三章 |
+| 需要发给用户的确认 Prompt | 本文档的 STOP 节点 |
+| 交付前最后的检查 | 本文档阶段6 |
