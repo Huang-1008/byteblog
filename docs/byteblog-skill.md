@@ -47,6 +47,9 @@ metadata:
 | ByteMD 工具栏英文 | locale 传了字符串 | `import zhHans from 'bytemd/locales/zh_Hans.json'` 绑定对象 | 重启前端 |
 | SPA 中点击按钮无反应 | 用了 window.open | 改为 `router.push()` | — |
 | uvicorn 端口被占用杀不掉 | reloader 子进程自动重启 | `taskkill /F /PID <所有PID>` | 换端口 |
+| Element Plus 组件样式改不动 | scoped 样式穿透失败 | 用 `:deep(.el-xxx)` 穿透 | 检查选择器 |
+| 页面在手机端显示异常 | 没做响应式 | 加 media query 或 Element Plus 响应式栅格 | 浏览器 F12 手机模式 |
+| `npm run build` 后路由 404 | Vite SPA 需要 fallback | 确认 history 模式 + 服务器配置 | — |
 
 ---
 
@@ -161,6 +164,31 @@ export default defineConfig({
 import bcrypt
 h = bcrypt.hashpw(b'admin123', bcrypt.gensalt()).decode()
 print(h)  # 复制到 init.sql
+```
+
+### SCSS 样式穿透
+
+```scss
+// Element Plus 组件样式覆盖
+.el-card { :deep(.el-card__body) { padding: 16px; } }
+
+// 表格表头
+.el-table { :deep(th.el-table__cell) { background: #f8f9fa; } }
+```
+
+### 响应式栅格
+
+```vue
+<!-- 大屏3列 → 中屏2列 → 小屏1列 -->
+<div class="grid">
+  <div class="item" v-for="item in list" :key="item.id">...</div>
+</div>
+
+<style scoped>
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+@media (max-width: 1024px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px)  { .grid { grid-template-columns: 1fr; } }
+</style>
 ```
 
 ### 清缓存命令
