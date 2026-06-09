@@ -99,17 +99,69 @@ Q4: UI风格偏好？（管理后台风/内容创作风？要不要前台？进�
 
 ## 阶段1：架构设计（10分钟）
 
+### 1.0 确定所需工具：Skills / Agent / MCP
+
+**在架构设计前，先盘点项目需要哪些工具，提前告知用户安装。**
+
+#### 分类规则
+
+| 安装方式 | 适用情况 | 示例 |
+|------|------|------|
+| **自行安装** | 纯代码依赖，无外部服务 | npm pip 包、VSCode 插件 |
+| **提示用户安装** | 需要用户账号/密钥/授权 | MCP 服务（GitHub/MySQL/Playwright） |
+
+#### 本项目标准工具清单
+
+| 工具 | 类型 | 用途 | 安装方式 |
+|------|------|------|------|
+| `docx` Skill | Skill | 生成 .docx 论文 | 自行调用（内置 skill） |
+| `deep-research` Skill | Skill | 技术方案调研（可选） | 自行调用（内置 skill） |
+| `code-review` Skill | Skill | 阶段性代码审查（可选） | 自行调用（内置 skill） |
+| GitHub MCP | MCP | 创建仓库、推送代码、PR | **提示用户**：需要 GitHub 授权 |
+| MySQL MCP | MCP | 数据库查询验证（只读） | **提示用户**：需配置数据库连接 |
+| Playwright MCP | MCP | 浏览器端到端测试（可选） | **提示用户**：需安装浏览器驱动 |
+| `docx` npm 包 | npm | JavaScript 生成论文文件 | 自行安装：`npm install docx` |
+| General-Purpose Agent | Agent | 前端页面批量生成 | 自行调用 |
+
+#### 标准问法
+
+```
+这个项目需要以下工具：
+
+自行安装的（我现在就装）：
+- Element Plus / ByteMD / SCSS（npm 依赖）
+- FastAPI / SQLAlchemy / bcrypt（pip 依赖）
+- docx npm 包（论文生成）
+
+需要你授权的（告诉我是否可用）：
+- GitHub MCP（建仓库+推送，需要你的 GitHub 账号授权）
+- MySQL MCP（查数据库，需要配置连接）
+- Playwright MCP（浏览器测试，可选）
+
+上面这些 MCP 工具你都有吗？没有的话我不用它们，换其他方式。
+```
+
+#### MCP 不可用时的降级方案
+
+| MCP 不可用 | 降级方案 |
+|------|------|
+| GitHub MCP | 手动 `git remote add` + `git push`，或让用户在 GitHub 网页建仓库 |
+| MySQL MCP | 用 Python pymysql 脚本直接连接数据库 |
+| Playwright MCP | 用 curl + 截图 + 用户手动验证 |
+
+> ⚠️ 不要假设用户有 MCP 工具。先问，不可用就降级。
+
 ### 1.1 生成最终确认 Prompt
 
 在写代码前，输出一份完整确认清单给用户：
 
 ```
 项目名称、技术栈（含版本号）、页面路由表、组件树、数据库ER草图、
-API列表、分阶段计划、所需skills/agents、UI设计规范（色彩/字体/动效）、
-加分项覆盖策略
+API列表、分阶段计划、所需 Skills/Agents/MCP 及安装方式、
+UI设计规范（色彩/字体/动效）、加分项覆盖策略
 ```
 
-用户逐项确认后再动手。
+清单中每项标 `🔲` 让用户逐项确认。用户确认后再动手。
 
 ### 1.2 数据库设计原则
 
