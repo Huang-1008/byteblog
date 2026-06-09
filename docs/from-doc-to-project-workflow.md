@@ -127,57 +127,83 @@ Q1: 选题方向？ Q2: 技术栈偏好？ Q3: 有API Key吗？ Q4: UI风格偏�
 
 ## 阶段1：架构设计 + 工具盘点
 
-### 工具盘点
+### ⚠️ 工具使用纪律（每次启动项目必须重新确认）
 
-**自行安装的（直接装）：**
+**确保每个工具在正确的时机被调用。不允许跳过。**
 
-| 工具 | 用途 |
-|------|------|
-| npm 包（Element Plus, Vue Router, Pinia, Axios, ByteMD, SCSS, docx） | 前端框架 + 论文生成 |
-| pip 包（FastAPI, SQLAlchemy, PyMySQL, bcrypt, jose, httpx, markdown-it-py） | 后端框架 + AI调用 |
-| 内置 Skill（docx, code-review, deep-research） | 论文生成、代码检查 |
-| **Playwright CLI**（`npx playwright install chromium`） | **页面截图 + 自动化端到端验证** |
+#### 工具 → 使用时机对照表
 
-**工具调用优先级（重要！）：**
+| 工具 | 必须使用的节点 | 具体做什么 | 不可用时降级 |
+|------|------|------|------|
+| **MySQL MCP** | 阶段0 收到密码后 | `mcp__mysql__execute_query` 检查 MySQL 是否在线 | Python pymysql |
+| **MySQL MCP** | 阶段2 建库后 | `mcp__mysql__execute_query` 验证表结构和种子数据 | Python pymysql |
+| **MySQL MCP** | 阶段3 每次改模型后 | `mcp__mysql__describe_table` 确认列类型正确 | Python pymysql |
+| **GitHub MCP** | 阶段6 交付前 | `mcp__github__create_repository` 建仓库 | 手动 git |
+| **GitHub MCP** | 阶段6 交付前 | `mcp__github__push_files` 或手动 `git push` | — |
+| **Playwright CLI** | 阶段4 系统可运行后 | `npx playwright screenshot` 截4张论文图 | Playwright MCP |
+| **Playwright MCP** | 阶段4 CLI快照异常时 | `mcp__playwright__browser_snapshot` 精细化调试 | Playwright CLI |
+| **docx Skill** | 阶段5 用户确认后 | 生成 .docx 论文 | — |
+| **code-review Skill** | 阶段4 Bug修复后 | 检查代码质量 | — |
+
+#### 🔴 铁律
 
 ```
-截图/自动化测试：Playwright CLI（首选） → Playwright MCP（CLI 失败时）
-建仓库/推送：   GitHub MCP（首选） → 手动 git（MCP 不可用时）
-查数据库：      MySQL MCP（首选） → Python pymysql（MCP 不可用时）
+MySQL MCP 只读 ≠ 不能用它帮用户配置数据库！
+即使 MCP 只有 SELECT 权限，也要用它：
+  1. 检查数据库是否在线
+  2. 检查表是否存在
+  3. 检查列类型是否正确
+  4. 验证种子数据是否插入成功
+  
+写操作（CREATE/INSERT）用 Python pymysql 脚本执行，
+但验证必须用 MySQL MCP 重复确认。
 ```
 
-**提示用户授权的 MCP：**
+#### 标准安装命令
 
-| MCP | 用途 | 不可用时降级 |
+| 工具 | 安装命令 | 谁来装 |
 |------|------|------|
-| GitHub MCP | 建仓库+推送 | 手动 git 命令 |
-| MySQL MCP | 查询验证 | Python pymysql 脚本 |
-| Playwright MCP | 浏览器交互（备选） | Playwright CLI |
+| npm 依赖 | `npm install` | Claude 自行 |
+| pip 依赖 | `pip install -r requirements.txt` | Claude 自行 |
+| Playwright 浏览器 | `npx playwright install chromium` | Claude 自行 |
+| docx npm | `npm install docx` | Claude 自行 |
+| GitHub MCP | VSCode 设置中配置 | 提示用户 |
+| MySQL MCP | VSCode 设置中配置 | 提示用户 |
+| Playwright MCP | VSCode 设置中配置 | 提示用户（备选） |
 
-**标准问法 + 自动安装：**
+#### 标准问法
 
 ```
 我会自动安装的：
-- 所有 npm/pip 依赖
-- Playwright 浏览器（npx playwright install chromium）
+- npm/pip 依赖、Playwright 浏览器、docx 生成器
 
-需要确认你有没有的 MCP：
-- GitHub MCP（没有我就用手动 git）
-- MySQL MCP（没有我就用 pymysql）
-- Playwright MCP（备选，CLI 已经够用）
+需要确认你有没有授权的：
+- GitHub MCP（没有我用 git 命令）
+- MySQL MCP（没有我用 pymysql，但强烈建议配置）
+
+即使 MCP 只是只读的，我也会用它来验证每一步，
+写操作我用 Python 脚本。
 ```
 
-### 🔴 STOP 0.5：代码写完、启动成功后，立刻用 Playwright CLI 截图
+### 🔴 STOP 0.5：数据库建好后立刻用 MySQL MCP 验证
+
+```sql
+-- 用 MCP 执行这些查询，逐项确认
+SHOW DATABASES;                    -- blog_db 存在？
+USE blog_db; SHOW TABLES;          -- 6张表都在？
+SELECT * FROM users;               -- admin 用户存在？role 正确？
+SELECT * FROM tags;                -- 10个标签？中文没乱码？
+DESCRIBE articles;                 -- status 是 VARCHAR 不是 ENUM？
+```
+
+### 🔴 STOP 0.6：系统可运行后立刻用 Playwright CLI 截图
 
 ```bash
-# 后端必须已启动！然后：
 npx playwright screenshot --browser=chromium http://localhost:5173/login docs/login.png
 npx playwright screenshot --browser=chromium http://localhost:5173/admin/articles docs/articles.png
 npx playwright screenshot --browser=chromium http://localhost:5173/admin/articles/new docs/editor.png
 npx playwright screenshot --browser=chromium http://localhost:5173/admin/review docs/review.png
 ```
-
-截图直接用于论文，不用手动截。
 
 ### 🔴 STOP 1：输出完整架构 Prompt
 
