@@ -1,0 +1,203 @@
+// ===== ByteBlog 全局样式 — 线条风格 / 高端 / 强交互 =====
+
+// 色彩体系
+$color-primary: #1a1a2e;
+$color-accent: #0f3460;
+$color-point: #e94560;
+$color-success: #00b894;
+$color-warning: #fdcb6e;
+$color-bg: #f8f9fa;
+$color-card: #ffffff;
+$color-border: #e2e8f0;
+$color-text: #2d3436;
+$color-text-light: #636e72;
+$color-text-muted: #b2bec3;
+
+// 阴影
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+// 圆角
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+
+// 过渡
+$trans-fast: 0.15s ease;
+$trans-normal: 0.25s ease;
+$trans-slow: 0.35s ease;
+
+// ===== 全局重置 =====
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  color: $color-text;
+  background: $color-bg;
+  line-height: 1.6;
+}
+
+a {
+  color: $color-accent;
+  text-decoration: none;
+  transition: color $trans-fast;
+
+  &:hover {
+    color: $color-point;
+  }
+}
+
+// ===== 线条风格卡片 =====
+.card-line {
+  background: $color-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  transition: box-shadow $trans-normal, transform $trans-normal;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-1px);
+  }
+}
+
+// ===== 页面过渡动画 =====
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.slide-enter-from {
+  transform: translateX(20px);
+  opacity: 0;
+}
+.slide-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+
+// ===== Element Plus 线条风格覆写 =====
+.el-button {
+  border-radius: $radius-sm !important;
+  font-weight: 500;
+  transition: all $trans-fast;
+
+  &:not(.el-button--primary) {
+    border-color: $color-border;
+
+    &:hover {
+      border-color: $color-accent;
+      color: $color-accent;
+    }
+  }
+}
+
+.el-button--primary {
+  --el-button-bg-color: #{$color-accent};
+  --el-button-border-color: #{$color-accent};
+
+  &:hover {
+    --el-button-bg-color: #{lighten($color-accent, 5%)};
+  }
+}
+
+.el-card {
+  border: 1px solid $color-border !important;
+  border-radius: $radius-md !important;
+  box-shadow: $shadow-sm !important;
+}
+
+.el-menu {
+  border-right: 1px solid $color-border !important;
+}
+
+.el-table {
+  th.el-table__cell {
+    background: lighten($color-bg, 1%);
+    border-bottom: 2px solid $color-border !important;
+    font-weight: 600;
+    color: $color-text;
+  }
+}
+
+.el-input__wrapper,
+.el-textarea__inner {
+  border-radius: $radius-sm !important;
+  box-shadow: none !important;
+  border: 1px solid $color-border !important;
+
+  &:hover {
+    border-color: $color-accent !important;
+  }
+
+  &.is-focus {
+    border-color: $color-accent !important;
+    box-shadow: 0 0 0 1px rgba($color-accent, 0.15) !important;
+  }
+}
+
+.el-tag {
+  border-radius: $radius-sm !important;
+  font-weight: 500;
+}
+
+// ===== 滚动条美化 =====
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: $color-text-muted;
+  border-radius: 3px;
+
+  &:hover {
+    background: $color-text-light;
+  }
+}
+
+// ===== AI 加载脉冲动画 =====
+@keyframes ai-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba($color-point, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba($color-point, 0); }
+}
+
+.ai-pulse {
+  animation: ai-pulse 1.5s infinite;
+}
+
+// ===== 骨骼屏 =====
+@keyframes skeleton {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, $color-border 25%, lighten($color-border, 5%) 37%, $color-border 63%);
+  background-size: 200px 100%;
+  animation: skeleton 1.4s ease infinite;
+  border-radius: $radius-sm;
+}
