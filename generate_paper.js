@@ -349,7 +349,7 @@ const doc = new Document({
 });
 
 // 生成文件
-const outPath = 'c:/Users/huangchunyuan/Desktop/RUANJIAN/blog-system/docs/软件生产实习结课论文_ByteBlog_v2.docx';
+const outPath = 'c:/Users/huangchunyuan/Desktop/RUANJIAN/blog-system/docs/软件生产实习结课论文_ByteBlog.docx';
 Packer.toBuffer(doc).then(buf => {
   fs.writeFileSync(outPath, buf);
   console.log('Paper generated:', outPath);
