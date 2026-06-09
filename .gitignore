@@ -25,3 +25,6 @@ Thumbs.db
 
 # Project
 /tmp/
+setup_db.py
+run_tests.py
+test_api.py
